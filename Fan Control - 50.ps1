@@ -1,0 +1,4 @@
+﻿IPMICFG-WIN -raw 30 45 1 1
+Start-Sleep 1
+IPMICFG-WIN -raw 30 70 66 1 0 32
+IPMICFG-WIN -raw 30 70 66 1 1 32
