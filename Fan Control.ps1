@@ -50,38 +50,51 @@ public static class TextNotifyIcon
 
 function CPUTemp
 {
-    $IPMIResult = IPMICFG-WIN -nm cpumemtemp | Select-String -Pattern "CPU#0 = " | Out-String
+    $IPMIResult =IPMICFG-Win -nm cpumemtemp | Select-String -Pattern "CPU#0 = " | Out-String
     $CPUTemp = [int]$IPMIResult.Substring(9,$IPMIResult.IndexOf("(")-9)
-    Return $CPUTemp
+    return $CPUTemp
 }
 #Set to Full 
-#IPMICFG-WIN -raw 30 45 1 1 
+IPMICFG-Win -raw 30 45 1 1 
 $icon = [TextNotifyIcon]::CreateTrayIcon()
-While($true){    
+while($true){    
     $currentTemp = CPUTemp
-    If ($currentTemp -ne $null) {
+    if ($null -ne $currentTemp) {
         Write-EventLog -LogName IPMI -Source scripts -Message "Current CPU temperature is $currentTemp degrees C" -EventId 0 -EntryType information
         if ($currentTemp -gt 95) {
-            IPMICFG-WIN -raw 30 70 66 1 0 55
-            IPMICFG-WIN -raw 30 70 66 1 1 55
+        IPMICFG-Win -raw 30 70 66 1 0 55
+        IPMICFG-Win -raw 30 70 66 1 1 55
         }
         elseif ($currentTemp -gt 90) {
-            IPMICFG-WIN -raw 30 70 66 1 0 44
-            IPMICFG-WIN -raw 30 70 66 1 1 44
+        IPMICFG-Win -raw 30 70 66 1 0 44
+        IPMICFG-Win -raw 30 70 66 1 1 44
         }
         elseif ($currentTemp -gt 88) {
-            IPMICFG-WIN -raw 30 70 66 1 0 39
-            IPMICFG-WIN -raw 30 70 66 1 1 39
+        IPMICFG-Win -raw 30 70 66 1 0 39
+        IPMICFG-Win -raw 30 70 66 1 1 39
         }
-        elseif ($currentTemp -gt 85) {
-            IPMICFG-WIN -raw 30 70 66 1 0 30
-            IPMICFG-WIN -raw 30 70 66 1 1 30
+        elseif ($currentTemp -gt 80) {
+        IPMICFG-Win -raw 30 70 66 1 0 36
+        IPMICFG-Win -raw 30 70 66 1 1 36
         }
         else {
-            IPMICFG-WIN -raw 30 70 66 1 0 24
-            IPMICFG-WIN -raw 30 70 66 1 1 24
+        IPMICFG-Win -raw 30 70 66 1 0 28
+        IPMICFG-Win -raw 30 70 66 1 1 28
         }
         [TextNotifyIcon]::UpdateIcon($icon, $currentTemp)
+    }
+    else {
+        Write-EventLog -LogName IPMI -Source scripts -Message "No reading" -EventId 0 -EntryType Warning
+        $IPMI = Get-Process IPMICFG-Win -ErrorAction SilentlyContinue
+        if ($IPMI) {
+            $IPMI | Stop-Process           
+        }
+        [Threading.Thread]::Sleep(3000)
+        $IPMI = Get-Process IPMICFG-Win -ErrorAction SilentlyContinue
+        if ($IPMI) {
+            Write-EventLog -LogName IPMI -Source scripts -Message "IPMI Error" -EventId 0 -EntryType Error
+        }        
+        Remove-Variable IPMI
     }
    [Threading.Thread]::Sleep(8000)
 }
