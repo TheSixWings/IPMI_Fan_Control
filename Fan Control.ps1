@@ -93,6 +93,7 @@ while($true){
         $IPMI = Get-Process IPMICFG-Win -ErrorAction SilentlyContinue
         if ($IPMI) {
             Write-EventLog -LogName IPMI -Source scripts -Message "IPMI Error" -EventId 0 -EntryType Error
+            [TextNotifyIcon]::UpdateIcon($icon, "E")
         }        
         Remove-Variable IPMI
     }
