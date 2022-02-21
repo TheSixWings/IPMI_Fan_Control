@@ -87,6 +87,7 @@ while($true){
         Write-EventLog -LogName IPMI -Source scripts -Message "No reading" -EventId 0 -EntryType Warning
         $IPMI = Get-Process IPMICFG-Win -ErrorAction SilentlyContinue
         if ($IPMI) {
+            Write-EventLog -LogName IPMI -Source scripts -Message "Reset IPMI" -EventId 0 -EntryType Warning
             $IPMI | Stop-Process           
         }
         [Threading.Thread]::Sleep(3000)
@@ -97,5 +98,5 @@ while($true){
         }        
         Remove-Variable IPMI
     }
-   [Threading.Thread]::Sleep(8000)
+   [Threading.Thread]::Sleep(10000)
 }
