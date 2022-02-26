@@ -9,6 +9,8 @@
 #     Limit-EventLog -OverflowAction OverWriteAsNeeded -MaximumSize 64KB -LogName "IPMI"
 # }
 
+#TaskScheduler: Run with highest privileges
+
 Add-Type -ReferencedAssemblies @("System.Windows.Forms"; "System.Drawing") -TypeDefinition @"
 using System;
 using System.Drawing;
