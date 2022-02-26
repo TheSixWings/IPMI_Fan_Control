@@ -64,24 +64,24 @@ while($true){
     if ($null -ne $currentTemp) {
         Write-EventLog -LogName IPMI -Source scripts -Message "Current CPU temperature is $currentTemp degrees C" -EventId 0 -EntryType information
         if ($currentTemp -gt 95) {
-        IPMICFG-Win -raw 30 70 66 1 0 55
-        IPMICFG-Win -raw 30 70 66 1 1 55
+        IPMICFG-Win -raw 30 70 66 1 0 52
+        IPMICFG-Win -raw 30 70 66 1 1 52
         }
         elseif ($currentTemp -gt 90) {
         IPMICFG-Win -raw 30 70 66 1 0 44
         IPMICFG-Win -raw 30 70 66 1 1 44
         }
-        elseif ($currentTemp -gt 88) {
-        IPMICFG-Win -raw 30 70 66 1 0 39
-        IPMICFG-Win -raw 30 70 66 1 1 39
-        }
         elseif ($currentTemp -gt 80) {
         IPMICFG-Win -raw 30 70 66 1 0 36
         IPMICFG-Win -raw 30 70 66 1 1 36
         }
-        else {
+        elseif ($currentTemp -gt 70) {
         IPMICFG-Win -raw 30 70 66 1 0 28
         IPMICFG-Win -raw 30 70 66 1 1 28
+        }
+        else {
+        IPMICFG-Win -raw 30 70 66 1 0 12
+        IPMICFG-Win -raw 30 70 66 1 1 12
         }
         [TextNotifyIcon]::UpdateIcon($icon, $currentTemp)
     }
