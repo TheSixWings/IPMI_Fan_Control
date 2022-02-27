@@ -91,7 +91,8 @@ while($true){
         if ($IPMI) {
             Write-EventLog -LogName IPMI -Source scripts -Message "Reset IPMI" -EventId 0 -EntryType Warning        
             [Threading.Thread]::Sleep(3000)
-            $IPMI | Stop-Process           
+            $termproc = Get-WmiObject -Class Win32_Process -Filter "name like 'IPMICFG-Win.exe'"
+            $termproc.terminate()           
         }
         [Threading.Thread]::Sleep(3000)
         $IPMI = Get-Process IPMICFG-Win -ErrorAction SilentlyContinue
