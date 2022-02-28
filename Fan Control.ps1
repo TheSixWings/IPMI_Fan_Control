@@ -75,13 +75,13 @@ while($true){
         IPMICFG-Win -raw 30 70 66 1 0 36
         IPMICFG-Win -raw 30 70 66 1 1 36
         }
-        elseif ($currentTemp -gt 70) {
+        elseif ($currentTemp -gt 75) {
         IPMICFG-Win -raw 30 70 66 1 0 28
         IPMICFG-Win -raw 30 70 66 1 1 28
         }
         else {
-        IPMICFG-Win -raw 30 70 66 1 0 12
-        IPMICFG-Win -raw 30 70 66 1 1 12
+        IPMICFG-Win -raw 30 70 66 1 0 16
+        IPMICFG-Win -raw 30 70 66 1 1 16
         }
         [TextNotifyIcon]::UpdateIcon($icon, $currentTemp)
     }
