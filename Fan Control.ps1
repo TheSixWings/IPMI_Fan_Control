@@ -1,4 +1,4 @@
-﻿#Use Supermicro IPMICFG to check CPU temp every 8 sec.
+﻿#Use Supermicro IPMICFG to check CPU temp every 10 sec.
 #Log the temp
 #Control fan speed accordingly
 #Display the temp as an icon in the statusbar
@@ -87,19 +87,18 @@ while($true){
     }
     else {
         Write-EventLog -LogName IPMI -Source scripts -Message "No reading" -EventId 0 -EntryType Warning
-        $IPMI = Get-Process IPMICFG-Win -ErrorAction SilentlyContinue
-        if ($IPMI) {
-            Write-EventLog -LogName IPMI -Source scripts -Message "Reset IPMI" -EventId 0 -EntryType Warning        
-            [Threading.Thread]::Sleep(3000)
-            (Get-WmiObject -Class Win32_Process -Filter "name like 'IPMICFG-Win.exe'").Terminate()
-        }
-        [Threading.Thread]::Sleep(3000)
-        $IPMI = Get-Process IPMICFG-Win -ErrorAction SilentlyContinue
-        if ($IPMI) {
-            Write-EventLog -LogName IPMI -Source scripts -Message "IPMI Error" -EventId 0 -EntryType Error
-            [TextNotifyIcon]::UpdateIcon($icon, "E")
-        }        
-        Remove-Variable IPMI
     }
-   [Threading.Thread]::Sleep(10000)
+    [Threading.Thread]::Sleep(10000)
+    $IPMI = Get-Process IPMICFG-Win -ErrorAction SilentlyContinue
+    if ($IPMI) {
+        Write-EventLog -LogName IPMI -Source scripts -Message "Reset IPMI" -EventId 0 -EntryType Warning        
+        $IPMI.Kill()
+    }
+    [Threading.Thread]::Sleep(3000)
+    $IPMI = Get-Process IPMICFG-Win -ErrorAction SilentlyContinue
+    if ($IPMI) {
+        Write-EventLog -LogName IPMI -Source scripts -Message "IPMI Error" -EventId 0 -EntryType Error
+        [TextNotifyIcon]::UpdateIcon($icon, "E")
+    }        
+    Remove-Variable IPMI
 }
