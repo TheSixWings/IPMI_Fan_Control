@@ -56,48 +56,100 @@ function CPUTemp
     $CPUTemp = [int]$IPMIResult.Substring(9,$IPMIResult.IndexOf("(")-9)
     return $CPUTemp
 }
+
 #Set to Full 
 IPMICFG-Win -raw 30 45 1 1 
 $icon = [TextNotifyIcon]::CreateTrayIcon()
+#Setup temp and fan tier
+$temp1 = 75
+$temp2 = 80
+$temp3 = 90
+$temp4 = 95
+$fan0 = 20
+$fan1 = 28
+$fan2 = 36
+$fan3 = 44
+$fan4 = 52
+#Fan RPM Hashtable
+$RPMTable = @{
+    64 = 8800
+    62 = 8700
+    60 = 8500
+    58 = 8000
+    56 = 7900
+    54 = 7700
+    52 = 7600
+    50 = 7500
+    48 = 7000
+    46 = 6800
+    44 = 6700
+    42 = 6600
+    40 = 6400
+    38 = 5900
+    36 = 5800
+    34 = 5600
+    32 = 5500
+    30 = 5300
+    28 = 4800
+    26 = 4700
+    24 = 4500
+    22 = 4400
+    20 = 4300
+    18 = 3700
+    16 = 3500
+    14 = 3400
+    12 = 3200
+    10 = 3000
+    8 = 2400
+    6 = 2300
+    4 = 2100
+    2 = 2000
+    0 = 1800
+}
+
 while($true){    
-    $currentTemp = CPUTemp
+    #Update Current Temp
+    $currentTemp = Start-Job -ScriptBlock ${Function:CPUTemp} | Wait-Job -Timeout 3 | Receive-Job
+    Get-Job | Stop-Job
+    Get-Job | Remove-Job
+
     if ($null -ne $currentTemp) {
-        Write-EventLog -LogName IPMI -Source scripts -Message "Current CPU temperature is $currentTemp degrees C" -EventId 0 -EntryType information
-        if ($currentTemp -gt 95) {
-        IPMICFG-Win -raw 30 70 66 1 0 52
-        IPMICFG-Win -raw 30 70 66 1 1 52
+        Write-EventLog -LogName IPMI -Source scripts -Message "Current CPU temperature is $currentTemp Celsius." -EventId 0 -EntryType information
+        if ($currentTemp -gt $temp4) {
+            $setFan = $fan4
+        } 
+        elseif ($currentTemp -gt $temp3) {
+            $setFan = $fan3
+        } 
+        elseif ($currentTemp -gt $temp2) {
+            $setFan = $fan2
         }
-        elseif ($currentTemp -gt 90) {
-        IPMICFG-Win -raw 30 70 66 1 0 44
-        IPMICFG-Win -raw 30 70 66 1 1 44
-        }
-        elseif ($currentTemp -gt 80) {
-        IPMICFG-Win -raw 30 70 66 1 0 36
-        IPMICFG-Win -raw 30 70 66 1 1 36
-        }
-        elseif ($currentTemp -gt 75) {
-        IPMICFG-Win -raw 30 70 66 1 0 28
-        IPMICFG-Win -raw 30 70 66 1 1 28
-        }
+        elseif ($currentTemp -gt $temp1) {
+            $setFan = $fan1
+        } 
         else {
-        IPMICFG-Win -raw 30 70 66 1 0 16
-        IPMICFG-Win -raw 30 70 66 1 1 16
+            $setFan = $fan0
         }
+        #Set Fan Speed
+        IPMICFG-Win -raw 30 70 66 1 0 $setFan
+        Write-EventLog -LogName IPMI -Source scripts -Message "Set FAN1, FAN2 to " + $RPMTable.$setFan + " rpm." -EventId 0 -EntryType information
+        IPMICFG-Win -raw 30 70 66 1 1 $setFan
+        Write-EventLog -LogName IPMI -Source scripts -Message "Set FANA to " + $RPMTable.$setFan + " rpm." -EventId 0 -EntryType information
         [TextNotifyIcon]::UpdateIcon($icon, $currentTemp)
     }
     else {
-        Write-EventLog -LogName IPMI -Source scripts -Message "No reading" -EventId 0 -EntryType Warning
+        Write-EventLog -LogName IPMI -Source scripts -Message "No reading." -EventId 0 -EntryType Warning
     }
-    [Threading.Thread]::Sleep(10000)
+    Start-Sleep 10
     $IPMI = Get-Process IPMICFG-Win -ErrorAction SilentlyContinue
     if ($IPMI) {
-        Write-EventLog -LogName IPMI -Source scripts -Message "Reset IPMI" -EventId 0 -EntryType Warning        
+        Write-EventLog -LogName IPMI -Source scripts -Message "Reset IPMI." -EventId 0 -EntryType Warning        
         $IPMI.Kill()
     }
-    [Threading.Thread]::Sleep(3000)
+    Start-Sleep 3
     $IPMI = Get-Process IPMICFG-Win -ErrorAction SilentlyContinue
     if ($IPMI) {
-        Write-EventLog -LogName IPMI -Source scripts -Message "IPMI Error" -EventId 0 -EntryType Error
+        Write-EventLog -LogName IPMI -Source scripts -Message "IPMI Error." -EventId 0 -EntryType Error
         [TextNotifyIcon]::UpdateIcon($icon, "E")
     }        
     Remove-Variable IPMI
